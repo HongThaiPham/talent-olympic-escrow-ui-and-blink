@@ -27,12 +27,14 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 import useEscrowProgram from "@/hooks/useEscrowProgram";
 import { AxeIcon, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   trigger: React.ReactNode;
 };
 
 const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const { makeNewEscrow } = useEscrowProgram();
   const form = useForm<MakeNewEscrowSchemaType>({
@@ -53,11 +55,15 @@ const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
         error: "Failed to create escrow account!",
         finally() {
           form.reset();
+          queryClient.invalidateQueries({
+            queryKey: ["get-escrow-accounts"],
+          });
+
           setOpen(false);
         },
       });
     },
-    [form, makeNewEscrow]
+    [form, makeNewEscrow, queryClient]
   );
 
   return (

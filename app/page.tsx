@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full min-h-screen">
+    <div className="bg-gradient-to-r from-black-500 to-lack-200 h-full min-h-screen">
       <div className="container relative m-0 mx-auto py-10 md:px-10">
         <div className="max-width flex items-center justify-center">
           <Link className="flex flex-col items-center gap-1" href="/">
@@ -25,7 +25,7 @@ export default function Home() {
           <div className="flex h-full w-full flex-col items-center justify-center ">
             <span
               rel="noreferrer"
-              className="mb-6 cursor-pointer rounded-2xl border border-black/50 px-4 py-1 text-xs text-slate-600 transition duration-300 ease-in-out hover:text-slate-700 sm:text-base text-center bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%"
+              className="mb-6 cursor-pointer rounded-2xl border border-white/90 px-4 py-1 text-xs text-white transition duration-300 ease-in-out hover:text-slate-700 sm:text-base text-center"
             >
               Powered by{" "}
               <a

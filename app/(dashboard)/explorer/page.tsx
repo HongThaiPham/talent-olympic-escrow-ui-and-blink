@@ -1,6 +1,6 @@
+import EscrowCountCard from "@/components/escrow/EscrowCountCard";
 import EscrowGrid from "@/components/escrow/EscrowGrid";
 import MakeNewEscrowButton from "@/components/escrow/MakeNewEscrowButton";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -29,20 +29,7 @@ const ExplorerPage: React.FC<Props> = ({}) => {
             <MakeNewEscrowButton />
           </CardFooter>
         </Card>
-        <Card x-chunk="dashboard-05-chunk-1">
-          <CardHeader className="pb-2">
-            <CardDescription>Escrow count</CardDescription>
-            <CardTitle className="text-4xl">10</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground">
-              +25% from last week
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Progress value={25} aria-label="25% increase" />
-          </CardFooter>
-        </Card>
+        <EscrowCountCard />
         <Card x-chunk="dashboard-05-chunk-2">
           <CardHeader className="pb-2">
             <CardDescription>Volume</CardDescription>

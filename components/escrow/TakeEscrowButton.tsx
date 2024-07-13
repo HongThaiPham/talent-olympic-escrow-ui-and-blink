@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
-import { Replace, BicepsFlexed } from "lucide-react";
+import { Replace, BicepsFlexed, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ type Props = {
 
 const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
   const queryClient = useQueryClient();
-  const { refundEscrow: takeAEscrow } = useEscrowProgram();
+  const { takeAEscrow } = useEscrowProgram();
   const handleTake = async () => {
     toast.promise(takeAEscrow.mutateAsync({ escrow }), {
       loading: "Taking escrow...",
@@ -42,8 +42,12 @@ const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
   return (
     <AlertDialog>
       <Button asChild className="w-full">
-        <AlertDialogTrigger>
-          <Replace className="w-4 h-4 mr-2" />
+        <AlertDialogTrigger disabled={takeAEscrow.isPending}>
+          {takeAEscrow.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Replace className="w-4 h-4 mr-2" />
+          )}
           Take it
         </AlertDialogTrigger>
       </Button>
@@ -58,7 +62,12 @@ const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleTake}>
-            <BicepsFlexed className="w-4 h-4 mr-2" />I am sure
+            {takeAEscrow.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <BicepsFlexed className="w-4 h-4 mr-2" />
+            )}
+            I am sure
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

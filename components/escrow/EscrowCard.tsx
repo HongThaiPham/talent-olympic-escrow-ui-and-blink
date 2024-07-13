@@ -1,6 +1,7 @@
+"use client";
 import { BN, ProgramAccount } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -9,7 +10,15 @@ import {
   CardTitle,
 } from "../ui/card";
 import { ellipsify } from "@/lib/utils";
-import { CircleUser, Coins, RedoDot, RefreshCcw, UndoDot } from "lucide-react";
+import {
+  CircleUser,
+  Coins,
+  Ellipsis,
+  RedoDot,
+  RefreshCcw,
+  RefreshCwOff,
+  UndoDot,
+} from "lucide-react";
 import { Separator } from "../ui/separator";
 import ExplorerLink from "../ExplorerLink";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -20,6 +29,18 @@ import {
 import useTokenBalance from "@/hooks/useTokenBalance";
 import DisplayTokenAmount from "../DisplayTokenAmount";
 import TakeEscrowButton from "./TakeEscrowButton";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import useEscrowProgram from "@/hooks/useEscrowProgram";
+import RefundEscrowButton from "./RefundEscrowButton";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 type Props = {
   data: ProgramAccount<{
@@ -35,6 +56,8 @@ type Props = {
 const tokenProgram = TOKEN_PROGRAM_ID;
 
 const EscrowCard: React.FC<Props> = ({ data }) => {
+  const { publicKey } = useWallet();
+  const { takeAEscrow } = useEscrowProgram();
   const vaultAccount = useMemo(() => {
     return getAssociatedTokenAddressSync(
       data.account.mintA,
@@ -45,14 +68,35 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
   }, [data.account.mintA, data.publicKey]);
 
   const { data: tokenBalance } = useTokenBalance(vaultAccount);
-  console.log(tokenBalance);
+
+  const handleRefund = useCallback(() => {}, []);
 
   return (
     <Card className="group cursor-pointer">
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <RefreshCcw className="text-primary/70 mr-2 group-hover:animate-spin" />
-          Escrow
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <RefreshCcw className="text-primary/70 group-hover:animate-spin" />
+            Escrow
+          </div>
+
+          {publicKey && data.account.maker.equals(publicKey) ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size={"icon"} variant={"outline"}>
+                  <span className="sr-only">Open menu</span>
+                  <Ellipsis />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Author&apos;s action</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <RefundEscrowButton escrow={data.publicKey} />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
         </CardTitle>
         <CardDescription>
           Seed:

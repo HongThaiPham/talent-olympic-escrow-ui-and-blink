@@ -8,14 +8,20 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import {
   getAssociatedTokenAddressSync,
+  getMint,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import { toast } from "sonner";
 export default function useEscrowProgram() {
   const provider = useAnchorProvider();
   const { publicKey } = useWallet();
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
   const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
+
+  const getMintInfo = async (mint: PublicKey) => {
+    return getMint(provider.connection, mint, undefined, tokenProgram);
+  };
 
   const getEscrowInfo = async (escrow: PublicKey) => {
     return program.account.escrow.fetch(escrow);
@@ -63,9 +69,11 @@ export default function useEscrowProgram() {
       const { escrow } = params;
       const escrowAccount = await getEscrowInfo(escrow);
 
-      const [vault] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), escrow.toBuffer(), publicKey.toBuffer()],
-        program.programId
+      const vault = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintA),
+        escrow,
+        true,
+        tokenProgram
       );
 
       const makerAtaB = getAssociatedTokenAddressSync(
@@ -154,8 +162,17 @@ export default function useEscrowProgram() {
         tokenProgram
       );
 
+      const mintAInfo = await getMintInfo(new PublicKey(mint_a));
+      const mintAAmount = new BN(deposit).mul(
+        new BN(10).pow(new BN(mintAInfo.decimals))
+      );
+      const mintBInfo = await getMintInfo(new PublicKey(mint_b));
+      const mintBAmount = new BN(receive).mul(
+        new BN(10).pow(new BN(mintBInfo.decimals))
+      );
+
       return program.methods
-        .make(seed, new BN(deposit), new BN(receive))
+        .make(seed, mintAAmount, mintBAmount)
         .accounts({
           maker: publicKey,
           mintA: new PublicKey(mint_a),
