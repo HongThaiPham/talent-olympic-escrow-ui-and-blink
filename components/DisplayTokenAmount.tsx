@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 
 type Props = {
   amount: number | BN | string;
-  decimals: number;
+  decimals: number | undefined;
   symbol?: string;
   className?: string;
 };
@@ -16,7 +16,7 @@ const DisplayTokenAmount: React.FC<Props> = ({
   className,
 }) => {
   const amountString = useMemo(() => {
-    return new BN(amount).div(new BN(10).pow(new BN(decimals))).toString();
+    return new BN(amount).div(new BN(10).pow(new BN(decimals || 0))).toString();
   }, [amount, decimals]);
   return (
     <span className={cn(className)}>

@@ -83,7 +83,7 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
           {publicKey && data.account.maker.equals(publicKey) ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size={"icon"} variant={"outline"}>
+                <Button size={"icon"} variant={"ghost"} className="h-6 w-6 p-0">
                   <span className="sr-only">Open menu</span>
                   <Ellipsis />
                 </Button>
@@ -165,6 +165,7 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
         <TakeEscrowButton
           receive={data.account.receive}
           escrow={data.publicKey}
+          tokenAmint={data.account.mintA}
         />
       </CardContent>
     </Card>

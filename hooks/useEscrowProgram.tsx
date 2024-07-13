@@ -12,14 +12,22 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { toast } from "sonner";
 export default function useEscrowProgram() {
   const provider = useAnchorProvider();
   const { publicKey } = useWallet();
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
-  const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
+  // const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
+
+  const isToken2022 = async (mint: PublicKey) => {
+    const mintInfo = await provider.connection.getAccountInfo(mint);
+    return mintInfo?.owner.equals(TOKEN_2022_PROGRAM_ID);
+  };
 
   const getMintInfo = async (mint: PublicKey) => {
+    const tokenProgram = (await isToken2022(mint))
+      ? TOKEN_2022_PROGRAM_ID
+      : TOKEN_PROGRAM_ID;
+
     return getMint(provider.connection, mint, undefined, tokenProgram);
   };
 
@@ -31,8 +39,13 @@ export default function useEscrowProgram() {
     mutationKey: ["refund-escrow"],
     mutationFn: async (params: { escrow: PublicKey }) => {
       if (!publicKey) return;
+
       const { escrow } = params;
       const escrowAccount = await getEscrowInfo(escrow);
+
+      const tokenProgram = (await isToken2022(escrowAccount.mintA))
+        ? TOKEN_2022_PROGRAM_ID
+        : TOKEN_PROGRAM_ID;
 
       const makerAtaA = getAssociatedTokenAddressSync(
         new PublicKey(escrowAccount.mintA),
@@ -68,7 +81,9 @@ export default function useEscrowProgram() {
       if (!publicKey) return;
       const { escrow } = params;
       const escrowAccount = await getEscrowInfo(escrow);
-
+      const tokenProgram = (await isToken2022(escrowAccount.mintA))
+        ? TOKEN_2022_PROGRAM_ID
+        : TOKEN_PROGRAM_ID;
       const vault = getAssociatedTokenAddressSync(
         new PublicKey(escrowAccount.mintA),
         escrow,
@@ -138,6 +153,9 @@ export default function useEscrowProgram() {
       if (!publicKey) return;
       const seed = new BN(randomBytes(8));
       const { mint_a, mint_b, deposit, receive } = params;
+      const tokenProgram = (await isToken2022(new PublicKey(mint_a)))
+        ? TOKEN_2022_PROGRAM_ID
+        : TOKEN_PROGRAM_ID;
 
       const makerAtaA = getAssociatedTokenAddressSync(
         new PublicKey(mint_a),
@@ -194,5 +212,7 @@ export default function useEscrowProgram() {
     getEscrowAccounts,
     takeAEscrow,
     refundEscrow,
+    getEscrowInfo,
+    getMintInfo,
   };
 }

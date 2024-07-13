@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,15 +18,18 @@ import { toast } from "sonner";
 import useEscrowProgram from "@/hooks/useEscrowProgram";
 import { PublicKey } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
+import DisplayTokenAmount from "../DisplayTokenAmount";
 
 type Props = {
   receive: BN;
   escrow: PublicKey;
+  tokenAmint: PublicKey;
 };
 
-const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
+const TakeEscrowButton: React.FC<Props> = ({ receive, escrow, tokenAmint }) => {
   const queryClient = useQueryClient();
-  const { takeAEscrow } = useEscrowProgram();
+  const [decimals, setDecimals] = useState<number | undefined>(9);
+  const { takeAEscrow, getMintInfo } = useEscrowProgram();
   const handleTake = async () => {
     toast.promise(takeAEscrow.mutateAsync({ escrow }), {
       loading: "Taking escrow...",
@@ -39,6 +42,13 @@ const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
       },
     });
   };
+
+  useEffect(() => {
+    getMintInfo(tokenAmint).then((mint) => {
+      setDecimals(mint?.decimals);
+    });
+  }, [escrow, getMintInfo, tokenAmint]);
+
   return (
     <AlertDialog>
       <Button asChild className="w-full">
@@ -56,7 +66,12 @@ const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will take the escrow and send{" "}
-            {receive.toString()} your token B to maker
+            <DisplayTokenAmount
+              className="text-red-500 font-bold"
+              amount={receive.toString()}
+              decimals={decimals}
+            />{" "}
+            your token B to maker
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
