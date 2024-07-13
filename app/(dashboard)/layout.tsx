@@ -3,7 +3,7 @@ import React, { PropsWithChildren, Suspense } from "react";
 
 const DashboardLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <main className="relative flex h-screen w-full flex-col">
+    <main className="relative flex min-h-screen w-full flex-col">
       <NavBar />
       <Suspense
         fallback={

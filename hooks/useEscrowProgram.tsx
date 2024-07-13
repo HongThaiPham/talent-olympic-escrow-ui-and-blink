@@ -2,7 +2,7 @@ import { BN, Program } from "@coral-xyz/anchor";
 import useAnchorProvider from "./useAnchorProvider";
 import { AnchorEscrow } from "@/artifacts/anchor_escrow";
 import idl from "@/artifacts/anchor_escrow.json";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { randomBytes } from "crypto";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -11,12 +11,20 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { toast } from "sonner";
 export default function useEscrowProgram() {
   const provider = useAnchorProvider();
   const { publicKey } = useWallet();
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
   const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
+
+  const getEscrowAccounts = useQuery({
+    queryKey: ["get-escrow-accounts"],
+    queryFn: async () => {
+      const responces = await program.account.escrow.all();
+
+      return responces.sort((a, b) => a.account.seed.cmp(b.account.seed));
+    },
+  });
 
   const makeNewEscrow = useMutation({
     mutationKey: ["make-new-escrow"],
@@ -70,5 +78,5 @@ export default function useEscrowProgram() {
     },
   });
 
-  return { program, makeNewEscrow };
+  return { program, makeNewEscrow, getEscrowAccounts };
 }

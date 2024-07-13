@@ -52,12 +52,10 @@ const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
         success: "Escrow account created!",
         error: "Failed to create escrow account!",
         finally() {
-          // form.reset();
+          form.reset();
           setOpen(false);
         },
       });
-
-      // console.log(xxx);
     },
     [form, makeNewEscrow]
   );
