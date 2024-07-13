@@ -1,13 +1,19 @@
 import NavBar from "@/components/commons/Navbar";
-import React, { PropsWithChildren } from "react";
-
-type Props = {};
+import React, { PropsWithChildren, Suspense } from "react";
 
 const DashboardLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <main className="relative flex h-screen w-full flex-col">
       <NavBar />
-      {children}
+      <Suspense
+        fallback={
+          <div className="text-center my-32">
+            <span className="loading loading-spinner loading-lg"></span>
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
     </main>
   );
 };

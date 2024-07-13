@@ -1,3 +1,4 @@
+import MakeNewEscrowButton from "@/components/escrow/MakeNewEscrowButton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +25,7 @@ const ExplorerPage: React.FC<Props> = ({}) => {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button>Create New Escrow</Button>
+            <MakeNewEscrowButton />
           </CardFooter>
         </Card>
         <Card x-chunk="dashboard-05-chunk-1">
@@ -44,7 +45,7 @@ const ExplorerPage: React.FC<Props> = ({}) => {
         <Card x-chunk="dashboard-05-chunk-2">
           <CardHeader className="pb-2">
             <CardDescription>This Month</CardDescription>
-            <CardTitle className="text-4xl">$5,329</CardTitle>
+            <CardTitle className="text-4xl">SOL 5,432</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-muted-foreground">

@@ -11,7 +11,7 @@ const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
         <Toaster richColors position="bottom-right" />
-        <SolanaProvider>{children}</SolanaProvider>{" "}
+        <SolanaProvider>{children}</SolanaProvider>
       </AppThemeProvider>
     </QueryClientProvider>
   );
