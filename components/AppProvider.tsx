@@ -1,14 +1,20 @@
-import React, { PropsWithChildren, useMemo } from "react";
-import {
-  ConnectionProvider,
-  WalletProvider,
-} from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const network = WalletAdapterNetwork.Devnet;
+"use client";
+import React, { PropsWithChildren } from "react";
 
-  // You can also provide a custom RPC endpoint.
-  return <div>{children}</div>;
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
+import SolanaProvider from "./SolanaProvider";
+import AppThemeProvider from "./AppThemeProvider";
+const queryClient = new QueryClient();
+const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppThemeProvider>
+        <Toaster richColors position="bottom-right" />
+        <SolanaProvider>{children}</SolanaProvider>{" "}
+      </AppThemeProvider>
+    </QueryClientProvider>
+  );
 };
 
 export default AppProvider;
