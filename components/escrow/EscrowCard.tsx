@@ -57,19 +57,17 @@ const tokenProgram = TOKEN_PROGRAM_ID;
 
 const EscrowCard: React.FC<Props> = ({ data }) => {
   const { publicKey } = useWallet();
-  const { takeAEscrow } = useEscrowProgram();
-  const vaultAccount = useMemo(() => {
-    return getAssociatedTokenAddressSync(
-      data.account.mintA,
-      data.publicKey,
-      true,
-      tokenProgram
-    );
-  }, [data.account.mintA, data.publicKey]);
+  // const { takeAEscrow } = useEscrowProgram();
+  // const vaultAccount = useMemo(() => {
+  //   return getAssociatedTokenAddressSync(
+  //     data.account.mintA,
+  //     data.publicKey,
+  //     true,
+  //     tokenProgram
+  //   );
+  // }, [data.account.mintA, data.publicKey]);
 
-  const { data: tokenBalance } = useTokenBalance(vaultAccount);
-
-  const handleRefund = useCallback(() => {}, []);
+  // const { data: tokenBalance } = useTokenBalance(vaultAccount);
 
   return (
     <Card className="group cursor-pointer">
@@ -98,11 +96,21 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
             </DropdownMenu>
           ) : null}
         </CardTitle>
-        <CardDescription>
-          Seed:
-          <span className="text-primary/70 ml-2">
-            {ellipsify(data.account.seed.toString())}
-          </span>
+        <CardDescription className="space-y-2">
+          <div>
+            Seed:
+            <span className="text-primary/70 ml-2">
+              {ellipsify(data.account.seed.toString())}
+            </span>
+          </div>
+          <div>
+            Pda:
+            <ExplorerLink type="address" value={data.publicKey.toString()}>
+              <span className="text-primary/70 text-sm">
+                {ellipsify(data.publicKey.toString(), 8)}
+              </span>
+            </ExplorerLink>
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
