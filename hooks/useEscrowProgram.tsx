@@ -17,6 +17,99 @@ export default function useEscrowProgram() {
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
   const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
 
+  const getEscrowInfo = async (escrow: PublicKey) => {
+    return program.account.escrow.fetch(escrow);
+  };
+
+  const refundEscrow = useMutation({
+    mutationKey: ["refund-escrow"],
+    mutationFn: async (params: { escrow: PublicKey }) => {
+      if (!publicKey) return;
+      const { escrow } = params;
+      const escrowAccount = await getEscrowInfo(escrow);
+
+      const makerAtaA = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintA),
+        escrowAccount.maker,
+        false,
+        tokenProgram
+      );
+
+      const vault = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintA),
+        escrow,
+        true,
+        tokenProgram
+      );
+
+      return program.methods
+        .refund()
+        .accountsPartial({
+          maker: escrowAccount.maker,
+          mintA: new PublicKey(escrowAccount.mintA),
+          vault,
+          makerAtaA,
+          escrow,
+          tokenProgram,
+        })
+        .rpc();
+    },
+  });
+
+  const takeAEscrow = useMutation({
+    mutationKey: ["take-escrow"],
+    mutationFn: async (params: { escrow: PublicKey }) => {
+      if (!publicKey) return;
+      const { escrow } = params;
+      const escrowAccount = await getEscrowInfo(escrow);
+
+      const [vault] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), escrow.toBuffer(), publicKey.toBuffer()],
+        program.programId
+      );
+
+      const makerAtaB = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintB),
+        escrowAccount.maker,
+        false,
+        tokenProgram
+      );
+
+      const takerAtaA = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintA),
+        publicKey,
+        false,
+        tokenProgram
+      );
+
+      const takerAtaB = getAssociatedTokenAddressSync(
+        new PublicKey(escrowAccount.mintB),
+        publicKey,
+        false,
+        tokenProgram
+      );
+
+      return program.methods
+        .take()
+        .accountsPartial({
+          maker: escrowAccount.maker,
+          taker: publicKey,
+          mintA: new PublicKey(escrowAccount.mintA),
+          mintB: new PublicKey(escrowAccount.mintB),
+          makerAtaB,
+          takerAtaA,
+          takerAtaB,
+          escrow,
+          tokenProgram,
+          vault,
+        })
+        .rpc();
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   const getEscrowAccounts = useQuery({
     queryKey: ["get-escrow-accounts"],
     queryFn: async () => {
@@ -78,5 +171,11 @@ export default function useEscrowProgram() {
     },
   });
 
-  return { program, makeNewEscrow, getEscrowAccounts };
+  return {
+    program,
+    makeNewEscrow,
+    getEscrowAccounts,
+    takeAEscrow,
+    refundEscrow,
+  };
 }

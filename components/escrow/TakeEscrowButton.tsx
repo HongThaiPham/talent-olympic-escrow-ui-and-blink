@@ -15,14 +15,29 @@ import { Replace, BicepsFlexed } from "lucide-react";
 import { Button } from "../ui/button";
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
+import useEscrowProgram from "@/hooks/useEscrowProgram";
+import { PublicKey } from "@solana/web3.js";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   receive: BN;
+  escrow: PublicKey;
 };
 
-const TakeEscrowButton: React.FC<Props> = ({ receive }) => {
+const TakeEscrowButton: React.FC<Props> = ({ receive, escrow }) => {
+  const queryClient = useQueryClient();
+  const { refundEscrow: takeAEscrow } = useEscrowProgram();
   const handleTake = async () => {
-    toast.success("Escrow taken!");
+    toast.promise(takeAEscrow.mutateAsync({ escrow }), {
+      loading: "Taking escrow...",
+      success: "Escrow taken",
+      error: "Failed to take escrow",
+      finally() {
+        queryClient.invalidateQueries({
+          queryKey: ["get-escrow-accounts"],
+        });
+      },
+    });
   };
   return (
     <AlertDialog>

@@ -118,7 +118,10 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
           </div>
         </div>
         <Separator />
-        <TakeEscrowButton receive={data.account.receive} />
+        <TakeEscrowButton
+          receive={data.account.receive}
+          escrow={data.publicKey}
+        />
       </CardContent>
     </Card>
   );
