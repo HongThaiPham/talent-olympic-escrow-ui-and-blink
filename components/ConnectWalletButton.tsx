@@ -1,3 +1,4 @@
+"use client";
 import dynamic from "next/dynamic";
 import { buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";
