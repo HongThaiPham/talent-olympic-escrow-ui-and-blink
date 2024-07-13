@@ -3,7 +3,7 @@ import { Program, web3 } from "@coral-xyz/anchor";
 import idl from "@/artifacts/anchor_escrow.json";
 const headers = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
   "Access-Control-Allow-Headers":
     "Content-Type, Authorization, Content-Encoding, Accept-Encoding",
 };
