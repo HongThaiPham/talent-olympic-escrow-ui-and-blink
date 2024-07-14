@@ -1,7 +1,7 @@
 "use client";
 import { BN, ProgramAccount } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import React, { useCallback, useMemo } from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -16,17 +16,11 @@ import {
   Ellipsis,
   RedoDot,
   RefreshCcw,
-  RefreshCwOff,
   UndoDot,
 } from "lucide-react";
 import { Separator } from "../ui/separator";
 import ExplorerLink from "../ExplorerLink";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import useTokenBalance from "@/hooks/useTokenBalance";
 import DisplayTokenAmount from "../DisplayTokenAmount";
 import TakeEscrowButton from "./TakeEscrowButton";
 import { Button } from "../ui/button";
@@ -38,9 +32,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import useEscrowProgram from "@/hooks/useEscrowProgram";
 import RefundEscrowButton from "./RefundEscrowButton";
 import { useWallet } from "@solana/wallet-adapter-react";
+import useEscrowProgram from "@/hooks/useEscrowProgram";
 
 type Props = {
   data: ProgramAccount<{
@@ -53,11 +47,17 @@ type Props = {
   }>;
 };
 
-const tokenProgram = TOKEN_PROGRAM_ID;
-
 const EscrowCard: React.FC<Props> = ({ data }) => {
   const { publicKey } = useWallet();
-  // const { takeAEscrow } = useEscrowProgram();
+  const { getMintInfo } = useEscrowProgram();
+  const [mintBInfo, setMintBInfo] = React.useState<any>(null);
+
+  useEffect(() => {
+    getMintInfo(data.account.mintB).then((info) => {
+      setMintBInfo(info);
+    });
+  }, []);
+
   // const vaultAccount = useMemo(() => {
   //   return getAssociatedTokenAddressSync(
   //     data.account.mintA,
@@ -97,20 +97,20 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
           ) : null}
         </CardTitle>
         <CardDescription className="space-y-2">
-          <div>
+          <span className="block">
             Seed:
             <span className="text-primary/70 ml-2">
               {ellipsify(data.account.seed.toString())}
             </span>
-          </div>
-          <div>
+          </span>
+          <span className="block">
             Pda:
             <ExplorerLink type="address" value={data.publicKey.toString()}>
-              <span className="text-primary/70 text-sm">
+              <span className="text-primary/70 text-sm ml-2">
                 {ellipsify(data.publicKey.toString(), 8)}
               </span>
             </ExplorerLink>
-          </div>
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -163,7 +163,7 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
           <div className="text-primary/70 text-sm flex items-center gap-2">
             <DisplayTokenAmount
               amount={data.account.receive.toString()}
-              decimals={9}
+              decimals={mintBInfo?.decimals}
             />
 
             <span className="font-bold text-yellow-500">B token</span>

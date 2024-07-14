@@ -3,7 +3,6 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import AppProvider from "@/components/AppProvider";
 import { cn } from "@/lib/utils";
-import NavBar from "@/components/commons/Navbar";
 import Footer from "@/components/commons/Footer";
 
 const inter = Outfit({ subsets: ["latin"] });

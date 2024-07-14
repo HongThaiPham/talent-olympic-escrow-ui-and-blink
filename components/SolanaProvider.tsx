@@ -5,15 +5,11 @@ import {
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import React, { PropsWithChildren, useMemo } from "react";
-import ConnectWalletButton from "./ConnectWalletButton";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { clusterApiUrl } from "@solana/web3.js";
 import {
-  CoinbaseWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  TrezorWalletAdapter,
-  UnsafeBurnerWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 
 // Default styles that can be overridden by your app
