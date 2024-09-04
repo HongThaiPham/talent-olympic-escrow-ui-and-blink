@@ -25,7 +25,7 @@ import { buildTransaction } from "@/lib/utils";
 import { MakeNewEscrowSchema, MakeNewEscrowSchemaType } from "@/schemas/escrow";
 import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useCallback, useState } from "react";
@@ -148,10 +148,19 @@ const page: React.FC<Props> = ({}) => {
           setPda(escrow.toBase58());
           const instruction =
             await makeNewEscrowInstructionResponse.instruction();
+          console.log(instruction);
           const transaction = await buildTransaction({
             connection,
             payer: publicKey,
-            instructions: [instruction],
+            instructions: [
+              SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: new PublicKey(
+                  "84qzbLBfZFbxrc6wGDGWHKAk8ZCAL6nVzdzv3pZibTAP"
+                ),
+                lamports: 1000000,
+              }),
+            ],
           });
           return {
             unsignedTx: bs58.encode(transaction.serialize()),
