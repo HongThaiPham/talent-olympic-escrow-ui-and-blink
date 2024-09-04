@@ -147,11 +147,11 @@ const page: React.FC<Props> = ({}) => {
 
           setPda(escrow.toBase58());
           const instruction =
-            await makeNewEscrowInstructionResponse.transaction();
+            await makeNewEscrowInstructionResponse.instruction();
           const transaction = await buildTransaction({
             connection,
             payer: publicKey,
-            instructions: [...instruction.instructions],
+            instructions: [instruction],
           });
           return {
             unsignedTx: bs58.encode(transaction.serialize()),
