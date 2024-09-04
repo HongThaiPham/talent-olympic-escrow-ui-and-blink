@@ -26,23 +26,17 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import useEscrowProgram from "@/hooks/useEscrowProgram";
-import { Loader2 } from "lucide-react";
+import { AxeIcon, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCanvasClient } from "@/hooks/useCanvasClient";
-import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
-import { PublicKey } from "@solana/web3.js";
-import bs58 from "bs58";
-import { buildTransaction } from "@/lib/utils";
+
 type Props = {
   trigger: React.ReactNode;
 };
 
 const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
-  const { client, connection } = useCanvasClient();
-  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const { getMakeNewEscrowInstruction } = useEscrowProgram();
+  const { makeNewEscrow } = useEscrowProgram();
   const form = useForm<MakeNewEscrowSchemaType>({
     resolver: zodResolver(MakeNewEscrowSchema),
     defaultValues: {
@@ -55,49 +49,21 @@ const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
 
   const onSubmit = useCallback(
     async (values: MakeNewEscrowSchemaType) => {
-      setLoading(true);
-      const makeNewEscrowInstructionResponse =
-        await getMakeNewEscrowInstruction({ ...values });
-      const response = await client?.connectWalletAndSendTransaction(
-        "solana:103",
-        async (connectResponse: CanvasInterface.User.ConnectWalletResponse) => {
-          if (!connectResponse.untrusted.success) return undefined;
-          const address = new PublicKey(connectResponse.untrusted.address);
-
-          if (!makeNewEscrowInstructionResponse.methodBuilder) return;
-          const instruction =
-            await makeNewEscrowInstructionResponse.methodBuilder.instruction();
-          const transaction = await buildTransaction({
-            connection,
-            payer: address,
-            instructions: [instruction],
+      toast.promise(makeNewEscrow.mutateAsync({ ...values }), {
+        loading: "Making new escrow account...",
+        success: "Escrow account created!",
+        error: "Failed to create escrow account!",
+        finally() {
+          form.reset();
+          queryClient.invalidateQueries({
+            queryKey: ["get-escrow-accounts"],
           });
-          return {
-            unsignedTx: bs58.encode(transaction.serialize()),
-          };
-        }
-      );
 
-      if (response?.untrusted.success) {
-        console.log("Transaction success");
-        const result = {
-          blink: `${
-            process.env.NEXT_PUBLIC_DOMAIN
-          }/api/actions/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
-          dscvr: `${
-            process.env.NEXT_PUBLIC_DOMAIN
-          }/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
-        };
-        console.log(result);
-
-        form.reset();
-        queryClient.invalidateQueries({
-          queryKey: ["get-escrow-accounts"],
-        });
-      }
-      setLoading(false);
+          setOpen(false);
+        },
+      });
     },
-    [client, connection, form, getMakeNewEscrowInstruction, queryClient]
+    [form, makeNewEscrow, queryClient]
   );
 
   return (
@@ -191,8 +157,13 @@ const MakeNewEscrowDialog: React.FC<Props> = ({ trigger }) => {
               Cancel
             </Button>
           </DialogClose>
-          <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
-            {loading && <Loader2 className="ml-2 animate-spin" />}
+          <Button
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={makeNewEscrow.isPending}
+          >
+            {makeNewEscrow.isPending && (
+              <Loader2 className="ml-2 animate-spin" />
+            )}
             Make Escrow
           </Button>
         </DialogFooter>

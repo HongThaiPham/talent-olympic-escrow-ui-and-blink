@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client";
-import MakeNewEscrowDialog from "@/components/escrow/MakeNewEscrowDialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,20 +19,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useCanvasClient } from "@/hooks/useCanvasClient";
 import useEscrowProgram from "@/hooks/useEscrowProgram";
+import { buildTransaction } from "@/lib/utils";
 import { MakeNewEscrowSchema, MakeNewEscrowSchemaType } from "@/schemas/escrow";
+import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PublicKey } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-
+import bs58 from "bs58";
 type Props = {};
 
 const page: React.FC<Props> = ({}) => {
   const queryClient = useQueryClient();
-  const { makeNewEscrow } = useEscrowProgram();
+  const [loading, setLoading] = useState(false);
+  const { getMakeNewEscrowInstruction } = useEscrowProgram();
+  const { client, connection } = useCanvasClient();
   const form = useForm<MakeNewEscrowSchemaType>({
     resolver: zodResolver(MakeNewEscrowSchema),
     defaultValues: {
@@ -46,19 +50,49 @@ const page: React.FC<Props> = ({}) => {
 
   const onSubmit = useCallback(
     async (values: MakeNewEscrowSchemaType) => {
-      toast.promise(makeNewEscrow.mutateAsync({ ...values }), {
-        loading: "Making new escrow account...",
-        success: "Escrow account created!",
-        error: "Failed to create escrow account!",
-        finally() {
-          form.reset();
-          queryClient.invalidateQueries({
-            queryKey: ["get-escrow-accounts"],
+      setLoading(true);
+      const makeNewEscrowInstructionResponse =
+        await getMakeNewEscrowInstruction({ ...values });
+      const response = await client?.connectWalletAndSendTransaction(
+        "solana:103",
+        async (connectResponse: CanvasInterface.User.ConnectWalletResponse) => {
+          if (!connectResponse.untrusted.success) return undefined;
+          const address = new PublicKey(connectResponse.untrusted.address);
+
+          if (!makeNewEscrowInstructionResponse.methodBuilder) return;
+          const instruction =
+            await makeNewEscrowInstructionResponse.methodBuilder.instruction();
+          const transaction = await buildTransaction({
+            connection,
+            payer: address,
+            instructions: [instruction],
           });
-        },
-      });
+          return {
+            unsignedTx: bs58.encode(transaction.serialize()),
+          };
+        }
+      );
+
+      if (response?.untrusted.success) {
+        console.log("Transaction success");
+        const result = {
+          blink: `${
+            process.env.NEXT_PUBLIC_DOMAIN
+          }/api/actions/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
+          dscvr: `${
+            process.env.NEXT_PUBLIC_DOMAIN
+          }/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
+        };
+        console.log(result);
+
+        form.reset();
+        queryClient.invalidateQueries({
+          queryKey: ["get-escrow-accounts"],
+        });
+      }
+      setLoading(false);
     },
-    [form, makeNewEscrow, queryClient]
+    [client, connection, form, getMakeNewEscrowInstruction, queryClient]
   );
   return (
     <div>
@@ -143,13 +177,8 @@ const page: React.FC<Props> = ({}) => {
           </Form>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={makeNewEscrow.isPending}
-          >
-            {makeNewEscrow.isPending && (
-              <Loader2 className="ml-2 animate-spin" />
-            )}
+          <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
+            {loading && <Loader2 className="ml-2 animate-spin" />}
             Make Escrow
           </Button>
         </CardFooter>
