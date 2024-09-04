@@ -51,7 +51,7 @@ const page: React.FC<Props> = ({}) => {
   const [loading, setLoading] = useState(false);
   const [pda, setPda] = useState("");
   const { client, connection } = useCanvasClient();
-
+  const [isSuccess, setIsSuccess] = useState(false);
   const [links, setLinks] = useState({
     blink: "",
     dscvr: "",
@@ -170,11 +170,12 @@ const page: React.FC<Props> = ({}) => {
       if (response?.untrusted.success) {
         console.log("Transaction success");
         const result = {
-          blink: `${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`,
+          blink: `${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda}`,
           dscvr: `${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`,
         };
         console.log(result);
-        setLinks(result);
+
+        setIsSuccess(true);
 
         form.reset();
         queryClient.invalidateQueries({
@@ -267,33 +268,35 @@ const page: React.FC<Props> = ({}) => {
             </form>
           </Form>
 
-          <Alert>
-            <PartyPopper className="h-4 w-4" />
-            <AlertTitle>
-              New escrow account created successfully! 🎉. You can get shareable
-              links below.
-            </AlertTitle>
-            <AlertDescription>
-              <div className="text-wrap">
-                <h3>Blink</h3>
-                <Link
-                  href={`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`}
-                  target="_blank"
-                  className="text-wrap"
-                >
-                  {`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`}
-                </Link>
-                <h3>DSCVR</h3>
-                <Link
-                  href={`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
-                  target="_blank"
-                  className="text-wrap"
-                >
-                  {`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
-                </Link>
-              </div>
-            </AlertDescription>
-          </Alert>
+          {isSuccess ? (
+            <Alert variant={"destructive"}>
+              <PartyPopper className="h-4 w-4" />
+              <AlertTitle>
+                New escrow account created successfully! 🎉. You can get
+                shareable links below.
+              </AlertTitle>
+              <AlertDescription>
+                <div className="text-wrap">
+                  <h3>Blink</h3>
+                  <Link
+                    href={`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda}`}
+                    target="_blank"
+                    className="text-wrap text-primary"
+                  >
+                    {`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda}`}
+                  </Link>
+                  <h3>DSCVR</h3>
+                  <Link
+                    href={`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
+                    target="_blank"
+                    className="text-wrap text-primary"
+                  >
+                    {`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
+                  </Link>
+                </div>
+              </AlertDescription>
+            </Alert>
+          ) : null}
         </CardContent>
         <CardFooter>
           <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
