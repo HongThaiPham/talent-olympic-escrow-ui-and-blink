@@ -35,12 +35,15 @@ export default function useEscrowProgram() {
     return program.account.escrow.fetch(escrow);
   };
 
-  const getMakeNewEscrowInstruction = async (params: {
-    mint_a: string;
-    mint_b: string;
-    deposit: number;
-    receive: number;
-  }) => {
+  const getMakeNewEscrowInstruction = async (
+    publicKey: PublicKey | null,
+    params: {
+      mint_a: string;
+      mint_b: string;
+      deposit: number;
+      receive: number;
+    }
+  ) => {
     if (!publicKey)
       return {
         escrow: new PublicKey(""),
@@ -214,7 +217,10 @@ export default function useEscrowProgram() {
       deposit: number;
       receive: number;
     }) => {
-      const { methodBuilder } = await getMakeNewEscrowInstruction(params);
+      const { methodBuilder } = await getMakeNewEscrowInstruction(
+        publicKey,
+        params
+      );
       if (!methodBuilder) return;
       return methodBuilder.rpc();
     },

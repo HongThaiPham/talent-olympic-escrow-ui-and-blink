@@ -36,6 +36,7 @@ type Props = {};
 const page: React.FC<Props> = ({}) => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [pda, setPda] = useState("");
   const { getMakeNewEscrowInstruction } = useEscrowProgram();
   const { client, connection } = useCanvasClient();
   const form = useForm<MakeNewEscrowSchemaType>({
@@ -51,15 +52,17 @@ const page: React.FC<Props> = ({}) => {
   const onSubmit = useCallback(
     async (values: MakeNewEscrowSchemaType) => {
       setLoading(true);
-      const makeNewEscrowInstructionResponse =
-        await getMakeNewEscrowInstruction({ ...values });
+
       const response = await client?.connectWalletAndSendTransaction(
         "solana:103",
         async (connectResponse: CanvasInterface.User.ConnectWalletResponse) => {
           if (!connectResponse.untrusted.success) return undefined;
           const address = new PublicKey(connectResponse.untrusted.address);
+          const makeNewEscrowInstructionResponse =
+            await getMakeNewEscrowInstruction(address, { ...values });
 
           if (!makeNewEscrowInstructionResponse.methodBuilder) return;
+          setPda(makeNewEscrowInstructionResponse.escrow.toString());
           const instruction =
             await makeNewEscrowInstructionResponse.methodBuilder.instruction();
           const transaction = await buildTransaction({
@@ -76,12 +79,8 @@ const page: React.FC<Props> = ({}) => {
       if (response?.untrusted.success) {
         console.log("Transaction success");
         const result = {
-          blink: `${
-            process.env.NEXT_PUBLIC_DOMAIN
-          }/api/actions/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
-          dscvr: `${
-            process.env.NEXT_PUBLIC_DOMAIN
-          }/take-escrow/${makeNewEscrowInstructionResponse.escrow.toString()}`,
+          blink: `${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`,
+          dscvr: `${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`,
         };
         console.log(result);
 
@@ -92,7 +91,7 @@ const page: React.FC<Props> = ({}) => {
       }
       setLoading(false);
     },
-    [client, connection, form, getMakeNewEscrowInstruction, queryClient]
+    [client, connection, form, getMakeNewEscrowInstruction, pda, queryClient]
   );
   return (
     <div>
