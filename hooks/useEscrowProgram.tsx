@@ -13,7 +13,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 export default function useEscrowProgram() {
-  const provider = useAnchorProvider();
+  const provider = useAnchorProvider(true);
   const { publicKey } = useWallet();
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
   // const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;

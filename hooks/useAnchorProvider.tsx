@@ -4,11 +4,21 @@ import {
   useWallet,
 } from "@solana/wallet-adapter-react";
 import { AnchorProvider } from "@coral-xyz/anchor";
-export default function useAnchorProvider() {
+import { Keypair } from "@solana/web3.js";
+const MockWallet = {
+  signTransaction: () => Promise.reject(),
+  signAllTransactions: () => Promise.reject(),
+  publicKey: Keypair.generate().publicKey,
+};
+export default function useAnchorProvider(mock: boolean = false) {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  return new AnchorProvider(connection, wallet as AnchorWallet, {
-    commitment: "confirmed",
-  });
+  return new AnchorProvider(
+    connection,
+    mock ? MockWallet : (wallet as AnchorWallet),
+    {
+      commitment: "confirmed",
+    }
+  );
 }
