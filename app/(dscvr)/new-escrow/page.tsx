@@ -266,21 +266,25 @@ const page: React.FC<Props> = ({}) => {
               <FormMessage />
             </form>
           </Form>
-        </CardContent>
-        <CardFooter>
+
           <Alert>
             <PartyPopper className="h-4 w-4" />
             <AlertTitle>New escrow account created at: {pda}</AlertTitle>
             <AlertDescription>
-              <Link href={links.blink} target="_blank">
-                Blink
-              </Link>
-
-              <Link href={links.dscvr} target="_blank">
-                DSCVR
-              </Link>
+              <div>
+                <h3>Blink</h3>
+                <Link href={links.blink} target="_blank">
+                  {links.blink}
+                </Link>
+                <h3>DSCVR</h3>
+                <Link href={links.dscvr} target="_blank">
+                  {links.dscvr}
+                </Link>
+              </div>
             </AlertDescription>
           </Alert>
+        </CardContent>
+        <CardFooter>
           <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
             {loading && <Loader2 className="ml-2 animate-spin" />}
             Make Escrow
