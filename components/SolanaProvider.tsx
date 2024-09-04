@@ -24,11 +24,7 @@ const SolanaProvider: React.FC<PropsWithChildren> = ({ children }) => {
     [network]
   );
   return (
-    <ConnectionProvider
-      endpoint={
-        "https://devnet.helius-rpc.com/?api-key=b5f8c1a8-7580-49f7-8197-ed0d48aaa178"
-      }
-    >
+    <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>

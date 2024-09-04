@@ -37,7 +37,7 @@ export async function GET(req: Request, context: { params: Params }) {
       title: "Take escrow",
       label: "Take it",
       description: `This action allows you to take the escrow with token mint ${escrowAccount.mintA.toString()} by paying ${escrowAccount.receive.toString()} ${escrowAccount.mintA.toString()}`,
-      icon: "https://ucarecdn.com/59f7bf50-bbe0-43c7-a282-badebeea3a6b/-/preview/880x880/-/quality/smart/-/format/auto/",
+      icon: "https://ucarecdn.com/81eff519-159f-4d0c-8bb9-6b19e299eb73/-/preview/612x612/",
       links: {
         actions: [
           {

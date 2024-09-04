@@ -56,6 +56,7 @@ const EscrowCard: React.FC<Props> = ({ data }) => {
     getMintInfo(data.account.mintB).then((info) => {
       setMintBInfo(info);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // const vaultAccount = useMemo(() => {
