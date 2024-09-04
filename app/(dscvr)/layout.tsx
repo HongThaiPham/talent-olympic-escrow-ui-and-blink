@@ -35,7 +35,7 @@ const DscvrLayout: React.FC<PropsWithChildren> = ({ children }) => {
           </div>
         </nav>
       </div>
-      <div className="container mx-auto max-w-[450px] h-full py-5">
+      <div className="container mx-auto max-w-[600px] h-full py-5">
         {children}
       </div>
     </div>

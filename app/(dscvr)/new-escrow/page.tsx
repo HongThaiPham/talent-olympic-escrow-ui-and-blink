@@ -269,16 +269,27 @@ const page: React.FC<Props> = ({}) => {
 
           <Alert>
             <PartyPopper className="h-4 w-4" />
-            <AlertTitle>New escrow account created at: {pda}</AlertTitle>
+            <AlertTitle>
+              New escrow account created successfully! 🎉. You can get shareable
+              links below.
+            </AlertTitle>
             <AlertDescription>
-              <div>
+              <div className="text-wrap">
                 <h3>Blink</h3>
-                <Link href={links.blink} target="_blank">
-                  {links.blink}
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`}
+                  target="_blank"
+                  className="text-wrap"
+                >
+                  {`${process.env.NEXT_PUBLIC_DOMAIN}/api/actions/take-escrow/${pda})}`}
                 </Link>
                 <h3>DSCVR</h3>
-                <Link href={links.dscvr} target="_blank">
-                  {links.dscvr}
+                <Link
+                  href={`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
+                  target="_blank"
+                  className="text-wrap"
+                >
+                  {`${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`}
                 </Link>
               </div>
             </AlertDescription>
@@ -286,7 +297,7 @@ const page: React.FC<Props> = ({}) => {
         </CardContent>
         <CardFooter>
           <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
-            {loading && <Loader2 className="ml-2 animate-spin" />}
+            {loading && <Loader2 className="mr-2 animate-spin" />}
             Make Escrow
           </Button>
         </CardFooter>
