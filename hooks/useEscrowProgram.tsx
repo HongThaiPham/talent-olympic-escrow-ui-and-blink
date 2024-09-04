@@ -13,7 +13,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 export default function useEscrowProgram() {
-  const provider = useAnchorProvider(true);
+  const provider = useAnchorProvider();
   const { publicKey } = useWallet();
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
   // const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
@@ -33,73 +33,6 @@ export default function useEscrowProgram() {
 
   const getEscrowInfo = async (escrow: PublicKey) => {
     return program.account.escrow.fetch(escrow);
-  };
-
-  const getMakeNewEscrowInstruction = async (
-    publicKey: PublicKey | null,
-    params: {
-      mint_a: string;
-      mint_b: string;
-      deposit: number;
-      receive: number;
-    }
-  ) => {
-    if (!publicKey)
-      return {
-        escrow: new PublicKey(""),
-        methodBuilder: undefined,
-      };
-    const seed = new BN(randomBytes(8));
-    const { mint_a, mint_b, deposit, receive } = params;
-    const tokenProgram = (await isToken2022(new PublicKey(mint_a)))
-      ? TOKEN_2022_PROGRAM_ID
-      : TOKEN_PROGRAM_ID;
-
-    const makerAtaA = getAssociatedTokenAddressSync(
-      new PublicKey(mint_a),
-      publicKey,
-      false,
-      tokenProgram
-    );
-
-    const [escrow] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("escrow"),
-        publicKey.toBuffer(),
-        seed.toArrayLike(Buffer, "le", 8),
-      ],
-      program.programId
-    );
-
-    const vault = getAssociatedTokenAddressSync(
-      new PublicKey(mint_a),
-      escrow,
-      true,
-      tokenProgram
-    );
-
-    const mintAInfo = await getMintInfo(new PublicKey(mint_a));
-    const mintAAmount = new BN(deposit).mul(
-      new BN(10).pow(new BN(mintAInfo.decimals))
-    );
-    const mintBInfo = await getMintInfo(new PublicKey(mint_b));
-    const mintBAmount = new BN(receive).mul(
-      new BN(10).pow(new BN(mintBInfo.decimals))
-    );
-
-    return {
-      escrow,
-      methodBuilder: program.methods
-        .make(seed, mintAAmount, mintBAmount)
-        .accounts({
-          maker: publicKey,
-          mintA: new PublicKey(mint_a),
-          mintB: new PublicKey(mint_b),
-          makerAtaA,
-          vault,
-          tokenProgram,
-        }),
-    };
   };
 
   const refundEscrow = useMutation({
@@ -217,12 +150,56 @@ export default function useEscrowProgram() {
       deposit: number;
       receive: number;
     }) => {
-      const { methodBuilder } = await getMakeNewEscrowInstruction(
+      if (!publicKey) return;
+      const seed = new BN(randomBytes(8));
+      const { mint_a, mint_b, deposit, receive } = params;
+      const tokenProgram = (await isToken2022(new PublicKey(mint_a)))
+        ? TOKEN_2022_PROGRAM_ID
+        : TOKEN_PROGRAM_ID;
+
+      const makerAtaA = getAssociatedTokenAddressSync(
+        new PublicKey(mint_a),
         publicKey,
-        params
+        false,
+        tokenProgram
       );
-      if (!methodBuilder) return;
-      return methodBuilder.rpc();
+
+      const [escrow] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("escrow"),
+          publicKey.toBuffer(),
+          seed.toArrayLike(Buffer, "le", 8),
+        ],
+        program.programId
+      );
+
+      const vault = getAssociatedTokenAddressSync(
+        new PublicKey(mint_a),
+        escrow,
+        true,
+        tokenProgram
+      );
+
+      const mintAInfo = await getMintInfo(new PublicKey(mint_a));
+      const mintAAmount = new BN(deposit).mul(
+        new BN(10).pow(new BN(mintAInfo.decimals))
+      );
+      const mintBInfo = await getMintInfo(new PublicKey(mint_b));
+      const mintBAmount = new BN(receive).mul(
+        new BN(10).pow(new BN(mintBInfo.decimals))
+      );
+
+      return program.methods
+        .make(seed, mintAAmount, mintBAmount)
+        .accounts({
+          maker: publicKey,
+          mintA: new PublicKey(mint_a),
+          mintB: new PublicKey(mint_b),
+          makerAtaA,
+          vault,
+          tokenProgram,
+        })
+        .rpc();
     },
     onError: (error) => {
       console.error(error);
@@ -237,6 +214,5 @@ export default function useEscrowProgram() {
     refundEscrow,
     getEscrowInfo,
     getMintInfo,
-    getMakeNewEscrowInstruction,
   };
 }

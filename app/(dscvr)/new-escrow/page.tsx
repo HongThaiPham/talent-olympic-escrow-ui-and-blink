@@ -25,19 +25,29 @@ import { buildTransaction } from "@/lib/utils";
 import { MakeNewEscrowSchema, MakeNewEscrowSchemaType } from "@/schemas/escrow";
 import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import bs58 from "bs58";
+import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
+import { AnchorEscrow } from "@/artifacts/anchor_escrow";
+import idl from "@/artifacts/anchor_escrow.json";
+import { randomBytes } from "crypto";
+import {
+  getAssociatedTokenAddressSync,
+  getMint,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { publicKey } from "@coral-xyz/anchor/dist/cjs/utils";
 type Props = {};
 
 const page: React.FC<Props> = ({}) => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [pda, setPda] = useState("");
-  const { getMakeNewEscrowInstruction } = useEscrowProgram();
   const { client, connection } = useCanvasClient();
   const form = useForm<MakeNewEscrowSchemaType>({
     resolver: zodResolver(MakeNewEscrowSchema),
@@ -57,17 +67,90 @@ const page: React.FC<Props> = ({}) => {
         "solana:103",
         async (connectResponse: CanvasInterface.User.ConnectWalletResponse) => {
           if (!connectResponse.untrusted.success) return undefined;
-          const address = new PublicKey(connectResponse.untrusted.address);
-          const makeNewEscrowInstructionResponse =
-            await getMakeNewEscrowInstruction(address, { ...values });
+          const publicKey = new PublicKey(connectResponse.untrusted.address);
+          const provider = new AnchorProvider(
+            connection,
+            {
+              publicKey,
+              signTransaction: () => Promise.reject(),
+              signAllTransactions: () => Promise.reject(),
+            },
+            {
+              commitment: "confirmed",
+            }
+          );
+          const program = new Program<AnchorEscrow>(
+            idl as AnchorEscrow,
+            provider
+          );
+          const isToken2022 = async (mint: PublicKey) => {
+            const mintInfo = await provider.connection.getAccountInfo(mint);
+            return mintInfo?.owner.equals(TOKEN_2022_PROGRAM_ID);
+          };
 
-          if (!makeNewEscrowInstructionResponse.methodBuilder) return;
-          setPda(makeNewEscrowInstructionResponse.escrow.toString());
+          const seed = new BN(randomBytes(8));
+          const { mint_a, mint_b, deposit, receive } = values;
+          const tokenProgram = (await isToken2022(new PublicKey(mint_a)))
+            ? TOKEN_2022_PROGRAM_ID
+            : TOKEN_PROGRAM_ID;
+
+          const makerAtaA = getAssociatedTokenAddressSync(
+            new PublicKey(mint_a),
+            publicKey,
+            false,
+            tokenProgram
+          );
+
+          const [escrow] = PublicKey.findProgramAddressSync(
+            [
+              Buffer.from("escrow"),
+              publicKey.toBuffer(),
+              seed.toArrayLike(Buffer, "le", 8),
+            ],
+            program.programId
+          );
+
+          const vault = getAssociatedTokenAddressSync(
+            new PublicKey(mint_a),
+            escrow,
+            true,
+            tokenProgram
+          );
+
+          const getMintInfo = async (mint: PublicKey) => {
+            const tokenProgram = (await isToken2022(mint))
+              ? TOKEN_2022_PROGRAM_ID
+              : TOKEN_PROGRAM_ID;
+
+            return getMint(provider.connection, mint, undefined, tokenProgram);
+          };
+
+          const mintAInfo = await getMintInfo(new PublicKey(mint_a));
+          const mintAAmount = new BN(deposit).mul(
+            new BN(10).pow(new BN(mintAInfo.decimals))
+          );
+          const mintBInfo = await getMintInfo(new PublicKey(mint_b));
+          const mintBAmount = new BN(receive).mul(
+            new BN(10).pow(new BN(mintBInfo.decimals))
+          );
+
+          const makeNewEscrowInstructionResponse = await program.methods
+            .make(seed, mintAAmount, mintBAmount)
+            .accounts({
+              maker: publicKey,
+              mintA: new PublicKey(mint_a),
+              mintB: new PublicKey(mint_b),
+              makerAtaA,
+              vault,
+              tokenProgram,
+            });
+
+          setPda(escrow.toBase58());
           const instruction =
-            await makeNewEscrowInstructionResponse.methodBuilder.instruction();
+            await makeNewEscrowInstructionResponse.instruction();
           const transaction = await buildTransaction({
             connection,
-            payer: address,
+            payer: publicKey,
             instructions: [instruction],
           });
           return {
@@ -91,7 +174,7 @@ const page: React.FC<Props> = ({}) => {
       }
       setLoading(false);
     },
-    [client, connection, form, getMakeNewEscrowInstruction, pda, queryClient]
+    [client, connection, form, pda, queryClient]
   );
   return (
     <div>
