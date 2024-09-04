@@ -7,6 +7,7 @@ type Props = {
 } & PropsWithChildren;
 
 const ExplorerLink: React.FC<Props> = ({ type = "tx", value, children }) => {
+  if (!value) return "";
   return (
     <Link
       href={`https://explorer.solana.com/${type}/${value}?cluster=devnet`}

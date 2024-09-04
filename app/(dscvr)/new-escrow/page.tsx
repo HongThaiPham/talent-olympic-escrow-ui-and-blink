@@ -20,18 +20,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCanvasClient } from "@/hooks/useCanvasClient";
-import useEscrowProgram from "@/hooks/useEscrowProgram";
 import { buildTransaction } from "@/lib/utils";
 import { MakeNewEscrowSchema, MakeNewEscrowSchemaType } from "@/schemas/escrow";
 import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, PartyPopper } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import bs58 from "bs58";
-import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { AnchorEscrow } from "@/artifacts/anchor_escrow";
 import idl from "@/artifacts/anchor_escrow.json";
 import { randomBytes } from "crypto";
@@ -41,7 +40,6 @@ import {
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { publicKey } from "@coral-xyz/anchor/dist/cjs/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 type Props = {};
