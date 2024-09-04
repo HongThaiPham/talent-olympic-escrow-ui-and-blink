@@ -15,7 +15,7 @@ import {
 export default function useEscrowProgram() {
   const provider = useAnchorProvider(true);
   const { publicKey } = useWallet();
-  const program = new Program<AnchorEscrow>(idl as AnchorEscrow, provider);
+  const program = new Program<AnchorEscrow>(idl as AnchorEscrow);
   // const tokenProgram = TOKEN_PROGRAM_ID; //TOKEN_2022_PROGRAM_ID;
 
   const isToken2022 = async (mint: PublicKey) => {
