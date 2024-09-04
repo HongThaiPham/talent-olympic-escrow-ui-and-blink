@@ -27,7 +27,7 @@ import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, PartyPopper } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import bs58 from "bs58";
@@ -42,6 +42,8 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { publicKey } from "@coral-xyz/anchor/dist/cjs/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 type Props = {};
 
 const page: React.FC<Props> = ({}) => {
@@ -49,6 +51,11 @@ const page: React.FC<Props> = ({}) => {
   const [loading, setLoading] = useState(false);
   const [pda, setPda] = useState("");
   const { client, connection } = useCanvasClient();
+
+  const [links, setLinks] = useState({
+    blink: "",
+    dscvr: "",
+  });
   const form = useForm<MakeNewEscrowSchemaType>({
     resolver: zodResolver(MakeNewEscrowSchema),
     defaultValues: {
@@ -167,6 +174,7 @@ const page: React.FC<Props> = ({}) => {
           dscvr: `${process.env.NEXT_PUBLIC_DOMAIN}/take-escrow/${pda}`,
         };
         console.log(result);
+        setLinks(result);
 
         form.reset();
         queryClient.invalidateQueries({
@@ -260,6 +268,19 @@ const page: React.FC<Props> = ({}) => {
           </Form>
         </CardContent>
         <CardFooter>
+          <Alert>
+            <PartyPopper className="h-4 w-4" />
+            <AlertTitle>New escrow account created at: {pda}</AlertTitle>
+            <AlertDescription>
+              <Link href={links.blink} target="_blank">
+                Blink
+              </Link>
+
+              <Link href={links.dscvr} target="_blank">
+                DSCVR
+              </Link>
+            </AlertDescription>
+          </Alert>
           <Button onClick={form.handleSubmit(onSubmit)} disabled={loading}>
             {loading && <Loader2 className="ml-2 animate-spin" />}
             Make Escrow
