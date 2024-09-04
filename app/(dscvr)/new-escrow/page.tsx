@@ -109,6 +109,8 @@ const page: React.FC<Props> = ({}) => {
             program.programId
           );
 
+          setPda(escrow.toString());
+
           const vault = getAssociatedTokenAddressSync(
             new PublicKey(mint_a),
             escrow,
@@ -144,7 +146,6 @@ const page: React.FC<Props> = ({}) => {
               tokenProgram,
             });
 
-          setPda(escrow.toBase58());
           const instruction =
             await makeNewEscrowInstructionResponse.instruction();
           console.log(instruction);
