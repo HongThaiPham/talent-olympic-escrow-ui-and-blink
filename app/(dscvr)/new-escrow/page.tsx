@@ -68,23 +68,22 @@ const page: React.FC<Props> = ({}) => {
         async (connectResponse: CanvasInterface.User.ConnectWalletResponse) => {
           if (!connectResponse.untrusted.success) return undefined;
           const publicKey = new PublicKey(connectResponse.untrusted.address);
-          const provider = new AnchorProvider(
+          // const provider = new AnchorProvider(
+          //   connection,
+          //   {
+          //     publicKey,
+          //     // signTransaction: () => Promise.reject(),
+          //     // signAllTransactions: () => Promise.reject(),
+          //   },
+          //   {
+          //     commitment: "confirmed",
+          //   }
+          // );
+          const program = new Program<AnchorEscrow>(idl as AnchorEscrow, {
             connection,
-            {
-              publicKey,
-              signTransaction: () => Promise.reject(),
-              signAllTransactions: () => Promise.reject(),
-            },
-            {
-              commitment: "confirmed",
-            }
-          );
-          const program = new Program<AnchorEscrow>(
-            idl as AnchorEscrow,
-            provider
-          );
+          });
           const isToken2022 = async (mint: PublicKey) => {
-            const mintInfo = await provider.connection.getAccountInfo(mint);
+            const mintInfo = await connection.getAccountInfo(mint);
             return mintInfo?.owner.equals(TOKEN_2022_PROGRAM_ID);
           };
 
@@ -122,7 +121,7 @@ const page: React.FC<Props> = ({}) => {
               ? TOKEN_2022_PROGRAM_ID
               : TOKEN_PROGRAM_ID;
 
-            return getMint(provider.connection, mint, undefined, tokenProgram);
+            return getMint(connection, mint, undefined, tokenProgram);
           };
 
           const mintAInfo = await getMintInfo(new PublicKey(mint_a));
@@ -152,15 +151,7 @@ const page: React.FC<Props> = ({}) => {
           const transaction = await buildTransaction({
             connection,
             payer: publicKey,
-            instructions: [
-              SystemProgram.transfer({
-                fromPubkey: publicKey,
-                toPubkey: new PublicKey(
-                  "84qzbLBfZFbxrc6wGDGWHKAk8ZCAL6nVzdzv3pZibTAP"
-                ),
-                lamports: 1000000,
-              }),
-            ],
+            instructions: [instruction],
           });
           return {
             unsignedTx: bs58.encode(transaction.serialize()),
