@@ -82,10 +82,6 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
     [connection]
   );
 
-  if (!escrowAccount) {
-    return null;
-  }
-
   useEffect(() => {
     program.account.escrow.fetch(new PublicKey(pda)).then((data) => {
       console.log(data);
@@ -185,6 +181,10 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
     }
     setLoading(false);
   };
+
+  if (!escrowAccount) {
+    return null;
+  }
 
   return (
     <Card className="group cursor-pointer">
