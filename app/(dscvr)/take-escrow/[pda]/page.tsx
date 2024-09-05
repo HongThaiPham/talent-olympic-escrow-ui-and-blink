@@ -71,12 +71,14 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
   const program = new Program<AnchorEscrow>(idl as AnchorEscrow, {
     connection,
   });
+
   if (!escrowAccount) {
     return null;
   }
 
   useEffect(() => {
     program.account.escrow.fetch(new PublicKey(pda)).then((data) => {
+      setEscrowAccount(data);
       getMintInfo(data.mintB).then((info) => {
         setMintBInfo(info);
       });
