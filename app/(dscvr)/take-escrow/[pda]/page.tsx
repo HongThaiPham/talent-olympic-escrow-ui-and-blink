@@ -11,7 +11,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import idl from "@/artifacts/anchor_escrow.json";
 import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 import bs58 from "bs58";
@@ -56,21 +56,31 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [mintBInfo, setMintBInfo] = useState<any>(null);
   const queryClient = useQueryClient();
-  const isToken2022 = async (mint: PublicKey) => {
-    const mintInfo = await connection.getAccountInfo(mint);
-    return mintInfo?.owner.equals(TOKEN_2022_PROGRAM_ID);
-  };
-  const getMintInfo = async (mint: PublicKey) => {
-    const tokenProgram = (await isToken2022(mint))
-      ? TOKEN_2022_PROGRAM_ID
-      : TOKEN_PROGRAM_ID;
+  const isToken2022 = useCallback(
+    async (mint: PublicKey) => {
+      const mintInfo = await connection.getAccountInfo(mint);
+      return mintInfo?.owner.equals(TOKEN_2022_PROGRAM_ID);
+    },
+    [connection]
+  );
+  const getMintInfo = useCallback(
+    async (mint: PublicKey) => {
+      const tokenProgram = (await isToken2022(mint))
+        ? TOKEN_2022_PROGRAM_ID
+        : TOKEN_PROGRAM_ID;
 
-    return getMint(connection, mint, undefined, tokenProgram);
-  };
+      return getMint(connection, mint, undefined, tokenProgram);
+    },
+    [connection, isToken2022]
+  );
 
-  const program = new Program<AnchorEscrow>(idl as AnchorEscrow, {
-    connection,
-  });
+  const program = useMemo(
+    () =>
+      new Program<AnchorEscrow>(idl as AnchorEscrow, {
+        connection,
+      }),
+    [connection]
+  );
 
   if (!escrowAccount) {
     return null;
@@ -83,8 +93,7 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
         setMintBInfo(info);
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getMintInfo, pda, program]);
 
   const handleTake = async () => {
     if (!client || !escrowAccount) return;

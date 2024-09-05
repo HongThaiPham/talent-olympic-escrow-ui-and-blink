@@ -37,7 +37,7 @@ export default function RootLayout({
         <AppProvider>
           {children}
 
-          <Footer />
+          {/* <Footer /> */}
         </AppProvider>
       </body>
     </html>
