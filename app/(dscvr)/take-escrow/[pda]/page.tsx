@@ -35,6 +35,7 @@ import {
   UndoDot,
   Coins,
   Loader2,
+  Info,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 type Props = {
@@ -186,9 +187,10 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
   if (!escrowAccount) {
     return (
       <Alert>
-        <AlertTitle>Escrow not found</AlertTitle>
+        <Info className="text-primary/70 h-4 w-4" />
+        <AlertTitle>Escrow not exists</AlertTitle>
         <AlertDescription>
-          The escrow account with the provided PDA is not exist.
+          This Escrow account does not exist or took by someone else.
         </AlertDescription>
       </Alert>
     );
