@@ -36,6 +36,7 @@ import {
   Coins,
   Loader2,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 type Props = {
   params: {
     pda: string;
@@ -183,7 +184,14 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
   };
 
   if (!escrowAccount) {
-    return null;
+    return (
+      <Alert>
+        <AlertTitle>Escrow not found</AlertTitle>
+        <AlertDescription>
+          The escrow account with the provided PDA is not exist.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (
@@ -269,11 +277,19 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
           </div>
         </div>
         <Separator />
-        {escrowAccount ? (
+        {escrowAccount && !isSuccess ? (
           <Button onClick={handleTake} disabled={loading}>
             {loading && <Loader2 className="mr-2 animate-spin" />}
-            Make Escrow
+            Take it
           </Button>
+        ) : null}
+        {isSuccess ? (
+          <Alert>
+            <AlertTitle>Transaction successful.</AlertTitle>
+            <AlertDescription>
+              You took the escrow successfully.
+            </AlertDescription>
+          </Alert>
         ) : null}
       </CardContent>
     </Card>
