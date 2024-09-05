@@ -88,8 +88,10 @@ const TakeEscrowPage: React.FC<Props> = ({ params: { pda } }) => {
 
   useEffect(() => {
     program.account.escrow.fetch(new PublicKey(pda)).then((data) => {
+      console.log(data);
       setEscrowAccount(data);
       getMintInfo(data.mintB).then((info) => {
+        console.log(info);
         setMintBInfo(info);
       });
     });
